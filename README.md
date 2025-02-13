@@ -1,7 +1,7 @@
 <div align="center"><img src="https://github.com/sanwdp/Tabchi-Mokhber/blob/main/Tabchi-Mokhber.png" width="500"></div>
 <div align="center"><br>
 
-  برای توضیحات <a href="[d](https://github.com/sanwdp/Tabchi-Mokhber/blob/main/README-fa.md)"> فارسی اینجا بزنید </a>
+  برای توضیحات <a href="[d]("https://github.com/sanwdp/Tabchi-Mokhber/blob/main/README-fa.md")"> فارسی اینجا بزنید </a>
 
 </div>
 <br><br>

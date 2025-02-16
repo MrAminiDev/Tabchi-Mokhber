@@ -1,5 +1,4 @@
-# Developed By MrAmini
-
+# Developed By MrAmini5
 
 from telethon import TelegramClient, events, functions, types
 import asyncio
@@ -18,7 +17,6 @@ MESSAGE_FILE = 'pm.txt'
 BIO_API_URL = 'https://api.codebazan.ir/bio'
 SETTINGS_FILE = 'settings.json'
 ACCOUNTS_FILE = 'accounts.json'
-
 
 default_settings = {
     'save_user': True,
@@ -53,7 +51,6 @@ def load_accounts():
             except json.JSONDecodeError:
                 return {}  
     return {}  
-
 
 def save_accounts(accounts):
     with open(ACCOUNTS_FILE, 'w') as f:
@@ -113,9 +110,7 @@ async def set_new_pm(event):
 
     except Exception as e:
         await event.reply(f"⚠️ خطا در ذخیره پیام: {e}")
-
-
-    
+   
 async def update_bio():
     try:
         async with httpx.AsyncClient(follow_redirects=True) as req:
@@ -159,37 +154,33 @@ async def check_ban():
 
 async def join_group_from_message(event):
     if not settings.get('auto_join', False):
-        return  # اگر قابلیت غیرفعال است، نیازی به ادامه نیست
+        return 
 
     message_text = event.raw_text.strip()
     if "t.me/" not in message_text:
         return
 
-    # بررسی اینکه لینک مربوط به گروه خصوصی است یا عمومی
     if "joinchat" in message_text or "t.me/+" in message_text:
-        # لینک خصوصی (کد دوم شما)
         private_link_pattern = r"https?:\/\/t\.me\/(?:joinchat\/|\+)?([a-zA-Z0-9_-]+)"
         private_match = re.search(private_link_pattern, message_text)
         if private_match:
             group_identifier = private_match.group(1)
             try:
                 await client(functions.messages.ImportChatInviteRequest(group_identifier))
-                await event.reply("✅ به گروه خصوصی پیوستم!")
+                await client.send_message("me", "✅ به گروه خصوصی پیوستم!")
             except Exception as e:
-                await event.reply(f"❌ خطا در پیوستن به گروه: {str(e)}")
+                await client.send_message("me", f"❌ خطا در پیوستن به گروه: {str(e)}")
     else:
-        # لینک عمومی (کد اول شما)
         group_link_pattern = r"(https?:\/\/t\.me\/(?:joinchat\/)?([a-zA-Z0-9_-]+))"
         match = re.search(group_link_pattern, message_text)
         if match:
             group_identifier = match.group(2)
             try:
                 await client(functions.channels.JoinChannelRequest(group_identifier))
-                await event.reply("✅ به گروه عمومی پیوستم!")
+                await client.send_message("me", "✅ به گروه عمومی پیوستم!")
             except Exception as e:
-                await event.reply(f"❌ خطا در پیوستن به گروه: {str(e)}")
-
-        
+                await client.send_message("me", f"❌ خطا در پیوستن به گروه: {str(e)}")
+                
 @client.on(events.NewMessage)
 async def message_handler(event):
     sender_id = event.sender_id
@@ -258,7 +249,6 @@ async def receive_forward(event):
         forward_mode = False  
         user_list = load_users()  
 
-        # بررسی مقدار محدودیت روزانه
         settings = load_settings()
         daily_limit = settings.get("daily_limit")
 
@@ -294,7 +284,7 @@ async def add_account(event):
     phone_number = event.pattern_match.group(1)
 
     if sender_id != BOT_OWNER_ID:
-        return await event.reply("⛔ شما اجازه این کار را ندارید.")
+        return 
 
     accounts = load_accounts()
     if phone_number in accounts:
@@ -321,7 +311,7 @@ async def verify_account(event):
     code = event.pattern_match.group(2)
 
     if sender_id != BOT_OWNER_ID:
-        return await event.reply("⛔ شما اجازه این کار را ندارید.")
+        return
 
     accounts = load_accounts()
     if phone_number not in accounts or "hash" not in accounts[phone_number]:
@@ -342,7 +332,7 @@ async def verify_account(event):
 async def list_accounts(event):
     sender_id = event.sender_id
     if sender_id != BOT_OWNER_ID:
-        return await event.reply("⛔ شما اجازه این کار را ندارید.")
+        return 
 
     accounts = load_accounts()
     if not accounts:
@@ -361,7 +351,7 @@ async def delete_account(event):
     phone_number = event.pattern_match.group(1)
 
     if sender_id != BOT_OWNER_ID:
-        return await event.reply("⛔ شما اجازه این کار را ندارید.")
+        return 
 
     accounts = load_accounts()
     if phone_number not in accounts:
@@ -370,9 +360,50 @@ async def delete_account(event):
     del accounts[phone_number]
     save_accounts(accounts)
 
-    os.remove(f'session_{phone_number}.session')  # حذف فایل سشن
+    os.remove(f'session_{phone_number}.session') 
     await event.reply(f"✅ اکانت {phone_number} با موفقیت حذف شد.")
 
+@client.on(events.NewMessage(pattern=r'^accstatus (\+\d+)$'))
+async def account_status(event):
+    sender_id = event.sender_id
+    phone_number = event.pattern_match.group(1)
+
+    if sender_id != BOT_OWNER_ID:
+        return  
+
+    accounts = load_accounts()
+    if phone_number not in accounts:
+        return await event.reply("⚠️ این شماره در لیست نیست.")
+
+    session_file = f'session_{phone_number}'
+    if not os.path.exists(f"{session_file}.session"):
+        return await event.reply("⚠️ اکانت موردنظر در حال حاضر وارد نشده است.")
+
+    new_client = TelegramClient(session_file, API_ID, API_HASH)
+    await new_client.connect()
+
+    if not await new_client.is_user_authorized():
+        await new_client.disconnect()
+        return await event.reply("⚠️ این اکانت لاگین نشده است.")
+
+    user = await new_client.get_me()
+    last_online = "نامشخص" if not user.status else str(user.status)
+    
+    dialogs = await new_client.get_dialogs()
+    total_messages = sum(len(await new_client.get_messages(dialog.entity, limit=100)) for dialog in dialogs if dialog.is_user)
+
+    await new_client.disconnect()
+
+    status_message = (
+        f"📌 **وضعیت اکانت {phone_number}:**\n"
+        f"👤 **نام کاربری:** {user.username or 'ندارد'}\n"
+        f"🆔 **ایدی عددی:** {user.id}\n"
+        f"✅ **وضعیت ورود:** فعال\n"
+        f"🕒 **آخرین فعالیت:** {last_online}\n"
+        f"✉️ **تعداد پیام‌های ارسال‌شده:** {total_messages}\n"
+    )
+
+    await event.reply(status_message)
 
 @client.on(events.NewMessage)
 async def message_handler(event):
@@ -539,14 +570,12 @@ async def message_handler(event):
                 "📍  example: delacc +989191234567\n"
                 "📍 `accstatus` - بررسی اطلاعات اکانت\n"
                 "📍  example: accstatus +989191234567\n"
-                "📍 `listacc` - دریافت لیست اکانت ها\n"
+                "📍 `accs` - دریافت لیست اکانت ها\n"
                 "━━━━━━━━━━━━━━━━━━━━\n"
                 "❓ **راهنما:**\n"
                 "📌 `help` - نمایش لیست دستورات\n"
             )
             await event.reply(help_text, parse_mode='markdown')
-
-
 
 
 @client.on(events.ChatAction)

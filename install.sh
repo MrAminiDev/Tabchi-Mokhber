@@ -35,9 +35,6 @@ install_tabchi_mokhber() {
     cd mokhber
     sleep 2
     sudo uv run main.py
-
-    echo "Your bot has been successfully run. Check the commands using the 'Help' command in Telegram."
-    sleep 10  # Adding a 10-second delay before returning to the menu
 }
 
 update_tabchi_mokhber() {
@@ -50,30 +47,28 @@ uninstall_tabchi_mokhber() {
     sudo rm -rf mokhber
 }
 
-
 create_service() {
     echo "Creating systemd service..."
+    sudo bash -c 'cat > /etc/systemd/system/mokhber.service <<EOF
+[Unit]
+Description=mokhber
+After=network.target
 
-    echo "[Unit]" | sudo tee /etc/systemd/system/mokhber.service
-    echo "Description=mokhber" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "After=network.target" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "[Service]" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "Type=simple" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "User=root" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "WorkingDirectory=/root/mokhber" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "ExecStart=/usr/local/bin/uv run main.py" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "Restart=always" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "[Install]" | sudo tee -a /etc/systemd/system/mokhber.service
-    echo "WantedBy=multi-user.target" | sudo tee -a /etc/systemd/system/mokhber.service
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/mokhber
+ExecStart=/usr/local/bin/uv run main.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF'
 
     sudo systemctl daemon-reload
     sudo systemctl enable mokhber.service
     sudo systemctl start mokhber.service
 }
-
-
 
 
 while true; do
@@ -88,12 +83,13 @@ while true; do
     echo -e "${RED}        |___|___| \___/ |__|\_||__|__||_____||_____||__|\_| ${NC}"
     echo -e ""
     echo -e "${CYAN}+======================================================================+${NC}"
-    echo -e "|  Telegram Channel : ${MAGENTA}@AminiDev ${NC}|  Version : ${GREEN} 3.0.5${NC} "
+    echo -e "|  Telegram Channel : ${MAGENTA}@AminiDev ${NC}|  Version : ${GREEN} 3.0.6${NC} "
     echo -e "${CYAN}+======================================================================+${NC}"
     echo -e "${CYAN}== Main Menu ==${NC}"
     echo -e "1) Install Tabchi Mokhber"
-    echo -e "2) Update Tabchi Mokhber"
-    echo -e "3) Uninstall"
+    echo -e "2) Install Service"
+    echo -e "3) Update Tabchi Mokhber"
+    echo -e "4) Uninstall"
     echo -e "0) Exit"
     read -p "Enter your choice: " main_choice  # Fixed variable name
 
@@ -103,9 +99,12 @@ while true; do
             create_service
             ;;
         2)
-            update_tabchi_mokhber
+            create_service
             ;;
         3)
+            update_tabchi_mokhber
+            ;;
+        4)
             uninstall_tabchi_mokhber
             ;;
         0)

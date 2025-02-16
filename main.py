@@ -10,9 +10,9 @@ import httpx
 
 
 # Configuration
-API_ID = '2040'  # Replace with your API ID
-API_HASH = 'b18441a1ff607e10a989891a5462e627'  # Replace with your API hash
-BOT_OWNER_ID = AdminID # Replace with the bot owner's Telegram user ID
+API_ID = 'AminiMokhberAPIID'  # Replace with your API ID
+API_HASH = 'AminiMokhberAPIHASH'  # Replace with your API hash
+BOT_OWNER_ID = AminiMokhberADMINID # Replace with the bot owner's Telegram user ID
 USERS_FILE = 'user.txt'
 MESSAGE_FILE = 'pm.txt'
 BIO_API_URL = 'https://api.codebazan.ir/bio'

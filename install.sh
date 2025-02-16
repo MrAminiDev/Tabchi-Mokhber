@@ -45,6 +45,8 @@ update_tabchi_mokhber() {
 uninstall_tabchi_mokhber() {
     echo "Removing mokhber folder..."
     sudo rm -rf mokhber
+    sudo systemctl stop mokhber.service
+    sudo rm /etc/systemd/system/mokhber.service
 }
 
 create_service() {
@@ -87,7 +89,7 @@ while true; do
     echo -e "${CYAN}+======================================================================+${NC}"
     echo -e "${CYAN}== Main Menu ==${NC}"
     echo -e "1) Install Tabchi Mokhber"
-    echo -e "2) Install Service"
+    echo -e "2) Install Service (Must be installed.)"
     echo -e "3) Update Tabchi Mokhber"
     echo -e "4) Uninstall"
     echo -e "0) Exit"

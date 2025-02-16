@@ -19,82 +19,10 @@ Key Features:
 
 Mokhber is ideal for businesses and individuals who want to expand their audience and maximize their reach in Telegram while maintaining security and efficiency.
 
-# Installation instruction
-
-1- Update the server:
-```shell
-sudo apt update && sudo apt upgrade -y
+# Installation Script
+To install, simply run the following command on your server
 ```
-
-2- Install Python
-```shell
-sudo apt install python3 python3-pip -y
-```
-- Install prerequisites
-```shell
-pip install uv
-```
-
-4- Download the project
-```shell
-apt install wget unzip
-mkdir -p mokhber
-wget -O tabchi-mokhber.zip https://github.com/MrAminiDev/Tabchi-Mokhber/archive/refs/heads/main.zip
-unzip tabchi-mokhber.zip -d mokhber
-mv mokhber/Tabchi-Mokhber-main/* mokhber/
-rm -r mokhber/Tabchi-Mokhber-main
-rm tabchi-mokhber.zip
-```
-
-- Enter the Mokhber folder using the following command
-```shell
-cd mokhber
-```
-
-6- Edit the main.py file and put your token information in lines 14 and 13
-```shell
-nano main.py
-```
-To get API ID, HASH ID, go to https://my.telegram.org and create your program
-In line 15, put the admin ID number that can control the bot
-
-8- Run the following command to run the bot
-```shell
-uv run main.py
-```
-## To keep the bot running permanently, you need to use the service
-```sh
-nano /etc/systemd/system/mokhber.service
-```
-Put the following content in the service file
-```service
-[Unit]
-Description=mokhber
-After=network.target
-
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/root/mokhber
-ExecStart=/usr/local/bin/uv run main.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-Activation:
-```sh
-sudo systemctl daemon-reload
-sudo systemctl enable mokhber.service
-sudo systemctl start mokhber.service
-```
-Shutdown the bot:
-```sh
-sudo systemctl stop mokhber.service
-```
-Viewing the bot logs:
-```sh
-journalctl -u mokhber.service -f
+bash <(curl -Ls https://raw.githubusercontent.com/MrAminiDev/abchi-Mokhber/main/install.sh)
 ```
 
 ##  Support with Crypto 

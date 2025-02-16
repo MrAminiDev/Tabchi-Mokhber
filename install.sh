@@ -52,7 +52,7 @@ uninstall_tabchi_mokhber() {
 
 create_service() {
     echo "Creating systemd service..."
-    sudo bash -c 'cat > /etc/systemd/system/mokhber.service <<EOF
+    sudo tee /etc/systemd/system/mokhber.service > /dev/null <<EOF
 [Unit]
 Description=mokhber
 After=network.target
@@ -66,7 +66,7 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
-EOF'
+EOF
 
     sudo systemctl daemon-reload
     sudo systemctl enable mokhber.service
@@ -85,7 +85,7 @@ while true; do
     echo -e "${RED}        |___|___| \___/ |__|\_||__|__||_____||_____||__|\_| ${NC}"
     echo -e ""
     echo -e "${CYAN}+======================================================================+${NC}"
-    echo -e "|  Telegram Channel : ${MAGENTA}@AminiDev ${NC}|  Version : ${GREEN} 3.0.4${NC} "
+    echo -e "|  Telegram Channel : ${MAGENTA}@AminiDev ${NC}|  Version : ${GREEN} 3.0.5${NC} "
     echo -e "${CYAN}+======================================================================+${NC}"
     echo -e "${CYAN}== Main Menu ==${NC}"
     echo -e "1) Install Tabchi Mokhber"

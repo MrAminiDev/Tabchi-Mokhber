@@ -37,6 +37,7 @@ install_tabchi_mokhber() {
     sudo uv run main.py
 
     echo "Your bot has been successfully run. Check the commands using the 'Help' command in Telegram."
+    sleep 10  # Adding a 10-second delay before returning to the menu
 }
 
 update_tabchi_mokhber() {
@@ -91,9 +92,9 @@ while true; do
     echo -e "2) Update Tabchi Mokhber"
     echo -e "3) Uninstall"
     echo -e "0) Exit"
-    read -p "Enter your choice: " main_choice
+    read -p "Enter your choice: " main_choice  # Fixed variable name
 
-    case $option in
+    case $main_choice in  # Using $main_choice instead of $option
         1)
             install_tabchi_mokhber
             create_service

@@ -6,6 +6,7 @@ install_tabchi_mokhber() {
     sudo apt update && sudo apt upgrade -y
     sudo apt install python3 python3-pip -y
     pip install uv
+    pip install telethon
     sudo apt install wget unzip -y
     mkdir -p mokhber
     wget -O tabchi-mokhber.zip https://github.com/MrAminiDev/Tabchi-Mokhber/archive/refs/heads/main.zip

@@ -52,7 +52,7 @@ uninstall_tabchi_mokhber() {
 
 create_service() {
     echo "Creating systemd service..."
-    sudo tee /etc/systemd/system/mokhber.service > /dev/null <<EOF
+    sudo tee /etc/systemd/system/mokhber.service > /dev/null <<'EOF'
 [Unit]
 Description=mokhber
 After=network.target

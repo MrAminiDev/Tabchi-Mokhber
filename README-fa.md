@@ -15,86 +15,11 @@
 
 مخبر یک ابزار ایده‌آل برای کسب‌وکارها و افرادی است که به دنبال افزایش مخاطبین و گسترش تبلیغات خود در تلگرام هستند، در حالی که امنیت و کارایی را حفظ می‌کنند. 🚀
 
-# آموزش نصب
-
-1- اپدیت سرور  :
-```shell
-sudo apt update && sudo apt upgrade -y
+# نصب اسکریپت
+جهت نصب کافیه دستور زیر را اجرا بکنید و مراحل را طی کنید 
 ```
-
-2- نصب پایتون
-```shell
-sudo apt install python3 python3-pip -y
+bash <(curl -Ls https://raw.githubusercontent.com/MrAminiDev/Tabchi-Mokhber/main/install.sh)
 ```
-
-3- نصب پیش نیاز ها
-```shell
-pip install uv
-```
-
-4- دانلود پروژه
-```shell
-apt install wget unzip
-mkdir -p mokhber
-wget -O tabchi-mokhber.zip https://github.com/MrAminiDev/Tabchi-Mokhber/archive/refs/heads/main.zip
-unzip tabchi-mokhber.zip -d mokhber
-mv mokhber/Tabchi-Mokhber-main/* mokhber/
-rm -r mokhber/Tabchi-Mokhber-main
-rm tabchi-mokhber.zip
-```
-
-5- با استفاده از دستور زیر وارد فولدر مخبر بشید 
-```shell
-cd mokhber
-```
-
-6- فایل main.py رو ادیت بکنید و در لاین 14 و 13 اطلاعات توکن خودتون رو بزارید 
-```shell
-nano main.py
-```
-برای دریافت API ID , HASH ID به ادرس https://my.telegram.org برید و برنامه خودتون رو ایجاد کنید 
-در خط 15 ای دی عددی ادمین رو بزارید که میتونه ربات رو کنترل بکنه 
-
-8- دستور زیر رو برای اجرا شدن ربات بزنید
-```shell
-uv run main.py
-```
-## برای اجرا نگه داشتن بات به صورت دائمی باید از سرویس استفاده کنید
-```sh
-nano /etc/systemd/system/mokhber.service
-```
-محتوا زیرو داخل فایل سرویس بزارید
-```service
-[Unit]
-Description=mokhber
-After=network.target
-
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/root/mokhber
-ExecStart=/usr/local/bin/uv run main.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-فعالسازی:
-```sh
-sudo systemctl daemon-reload
-sudo systemctl enable mokhber.service
-sudo systemctl start mokhber.service
-```
-
-خاموش کردن ربات:
-```sh
-sudo systemctl stop mokhber.service
-```
-مشاهد لاگهای ربات:
-```sh
-journalctl -u mokhber.service -f
-```
-
 ## حمایت از پروژه با ارز دیجیتال
 - TRX : `TLfVhyK6ihTuPNtFpuhULNuJaiKFLHxMFL`
 

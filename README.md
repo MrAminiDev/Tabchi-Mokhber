@@ -22,7 +22,7 @@ Mokhber is ideal for businesses and individuals who want to expand their audienc
 # Installation Script
 To install, simply run the following command on your server
 ```
-bash <(curl -Ls https://raw.githubusercontent.com/MrAminiDev/abchi-Mokhber/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/MrAminiDev/Tabchi-Mokhber/main/install.sh)
 ```
 
 ##  Support with Crypto 

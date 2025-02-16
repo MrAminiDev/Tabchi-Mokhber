@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Color Definitions
+RED='\033[38;2;231;76;60m'      # Red
+BLUE='\033[38;5;32m'            # Blue
+GREEN='\033[38;5;82m'           # Green
+YELLOW='\033[38;5;226m'         # Yellow
+CYAN='\033[38;5;51m'            # Cyan
+MAGENTA='\033[38;5;171m'        # Magenta
+NC='\033[0m'                    # No Color
+
 install_tabchi_mokhber() {
     echo "Starting installation process..."
 
@@ -63,14 +72,26 @@ EOF'
     sudo systemctl start mokhber.service
 }
 
-# منوی اصلی
 while true; do
     clear
-    echo "1. Install Tabchi Mokhber"
-    echo "2. Update"
-    echo "3. Uninstall"
-    echo "0. Exit"
-    read -p "Choose an option: " option
+    echo -e "${CYAN}+======================================================================+${NC}"
+    echo -e "${RED}         ___ ___   ___   __  _  __ __  ____     ___  ____  ${NC}"
+    echo -e "${RED}        |   |   | /   \ |  |/ ]|  |  ||    \   /  _]|    \  ${NC}"
+    echo -e "${RED}        | _   _ ||     ||  ' / |  |  ||  o  ) /  [_ |  D  )${NC}"
+    echo -e "${RED}        |  \_/  ||  O  ||    \ |  _  ||     ||    _]|    /  ${NC}"
+    echo -e "${RED}        |   |   ||     ||     \|  |  ||  O  ||   [_ |    \  ${NC}"
+    echo -e "${RED}        |   |   ||     ||  .  ||  |  ||     ||     ||  .  \ ${NC}"
+    echo -e "${RED}        |___|___| \___/ |__|\_||__|__||_____||_____||__|\_| ${NC}"
+    echo -e ""
+    echo -e "${CYAN}+======================================================================+${NC}"
+    echo -e "|  Telegram Channel : ${MAGENTA}@AminiDev ${NC}|  Version : ${GREEN} 3.0.0${NC} "
+    echo -e "${CYAN}+======================================================================+${NC}"
+    echo -e "${CYAN}== Main Menu ==${NC}"
+    echo -e "1) Install Tabchi Mokhber"
+    echo -e "2) Update Tabchi Mokhber"
+    echo -e "3) Uninstall"
+    echo -e "0) Exit"
+    read -p "Enter your choice: " main_choice
 
     case $option in
         1)

@@ -50,28 +50,31 @@ uninstall_tabchi_mokhber() {
     sudo rm -rf mokhber
 }
 
+
 create_service() {
     echo "Creating systemd service..."
-    sudo tee /etc/systemd/system/mokhber.service > /dev/null <<'EOF'
-[Unit]
-Description=mokhber
-After=network.target
 
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/root/mokhber
-ExecStart=/usr/local/bin/uv run main.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
+    echo "[Unit]" | sudo tee /etc/systemd/system/mokhber.service
+    echo "Description=mokhber" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "After=network.target" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "[Service]" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "Type=simple" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "User=root" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "WorkingDirectory=/root/mokhber" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "ExecStart=/usr/local/bin/uv run main.py" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "Restart=always" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "[Install]" | sudo tee -a /etc/systemd/system/mokhber.service
+    echo "WantedBy=multi-user.target" | sudo tee -a /etc/systemd/system/mokhber.service
 
     sudo systemctl daemon-reload
     sudo systemctl enable mokhber.service
     sudo systemctl start mokhber.service
 }
+
+
+
 
 while true; do
     clear

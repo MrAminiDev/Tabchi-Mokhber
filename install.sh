@@ -23,8 +23,9 @@ install_tabchi_mokhber() {
 
     read -p "Enter your Admin ID: " admin_id
     sed -i "s/AminiMokhberADMINID/$admin_id/" mokhber/main.py
-
-    uv run mokhber/main.py
+    cd mokhber
+    sleep 2
+    sudo uv run main.py
 
     echo "Your bot has been successfully run. Check the commands using the 'Help' command in Telegram."
 }

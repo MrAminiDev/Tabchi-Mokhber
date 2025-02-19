@@ -1,4 +1,4 @@
-# Developed By MrAmini
+# Developed By MrAmini5
 
 from telethon import TelegramClient, events, functions, types
 import asyncio
@@ -7,17 +7,19 @@ import os
 import json
 import re
 import httpx
+import sys
+import subprocess
 
 # Configuration
-API_ID = '2040'  # Replace with your API ID
-API_HASH = 'b18441a1ff607e10a989891a5462e627'  # Replace with your API hash
-BOT_OWNER_ID = 7541383912 # Replace with the bot owner's Telegram user ID
+API_ID = 'AminiMokhberAPIID'  # Replace with your API ID
+API_HASH = 'AminiMokhberAPIHASH'  # Replace with your API hash
+BOT_OWNER_ID = AminiMokhberADMINID # Replace with the bot owner's Telegram user ID
 USERS_FILE = 'user.txt'
 MESSAGE_FILE = 'pm.txt'
 BIO_API_URL = 'https://api.codebazan.ir/bio'
 SETTINGS_FILE = 'settings.json'
 ACCOUNTS_FILE = 'accounts.json'
-
+REBOOT_FLAG_FILE = "reboot_flag.txt"
 
 default_settings = {
     'save_user': True,
@@ -28,6 +30,31 @@ default_settings = {
     'daily_limit': 10,
     'auto_join': False
 }
+
+
+def save_user_to_file(user_id):
+    try:
+        user_id_str = str(user_id).strip()  # اطمینان از ذخیره به صورت رشته
+        with open("user.txt", "a", encoding="utf-8") as file:
+            file.write(user_id_str + "\n")  # ذخیره آی‌دی به صورت رشته در فایل
+    except Exception as e:
+        print(f"خطا در ذخیره کردن کاربر به فایل: {e}")
+
+def remove_user_from_file(user_id):
+    try:
+        user_id_str = str(user_id).strip()  # اطمینان از تبدیل به رشته و حذف فاصله‌های اضافی
+        with open("user.txt", "r", encoding="utf-8") as file:
+            lines = file.readlines()
+        
+        # حذف تمامی خطوطی که آی‌دی آن‌ها برابر با user_id_str است
+        new_lines = [line for line in lines if line.strip() != user_id_str]
+        
+        with open("user.txt", "w", encoding="utf-8") as file:
+            file.writelines(new_lines)
+        
+    except Exception as e:
+        print(f"خطا در حذف کاربر از فایل: {e}")
+
 
 def load_users():
     try:
@@ -75,6 +102,18 @@ client = TelegramClient('session', API_ID, API_HASH).start()
 
 settings = load_settings()
 
+def remove_user_from_file(user_id):
+    try:
+        with open("user.txt", "r", encoding="utf-8") as file:
+            users = file.readlines()
+        
+        with open("user.txt", "w", encoding="utf-8") as file:
+            for user in users:
+                if user.strip() != str(user_id):
+                    file.write(user)
+    except Exception as e:
+        print(f"خطا در حذف کاربر از فایل: {e}")
+
 def save_user(user_id):
     if not os.path.exists(USERS_FILE):
         open(USERS_FILE, 'w').close()
@@ -103,7 +142,7 @@ async def set_new_pm(event):
             await event.reply("⚠️ لطفاً پیام جدید خود را بعد از `setnewpm` در خط جدید وارد کنید.")
             return
 
-        new_message = parts[1].strip()  # حذف فاصله‌های اضافی
+        new_message = parts[1].strip()  
 
         with open("pm.txt", "w", encoding="utf-8") as f:
             f.write(new_message)
@@ -409,6 +448,7 @@ async def account_status(event):
 
     await event.reply(status_message)
 
+    
 @client.on(events.NewMessage)
 async def message_handler(event):
     sender_id = event.sender_id
@@ -510,6 +550,7 @@ async def message_handler(event):
                 for user in users:
                     try:
                         await client.send_message(int(user), message_content)
+                        remove_user_from_file(user_id)
                         await asyncio.sleep(random.randint(1, 10))
                     except Exception as e:
                         print(f"Error sending message to {user}: {e}")
@@ -556,6 +597,7 @@ async def message_handler(event):
                 "🔴 `chatuseroff` - غیرفعال‌سازی ذخیره کاربران پیام‌دهنده در گروه‌ها\n"
                 "🟢 `InvalidUserOn` - حذف خودکار کاربران نامعتبر\n"
                 "🔴 `InvalidUserOff` - غیرفعال‌سازی حذف کاربران نامعتبر\n"
+                "🟢 `cleanlist` - حذف کاربران ذخیره شده\n"
                 "━━━━━━━━━━━━━━━━━━━━\n"
                 "🔧 **تنظیمات و قابلیت‌ها:**\n"
                 "🔹 `bioon` - فعال‌سازی بیوگرافی تصادفی\n"
@@ -582,6 +624,14 @@ async def message_handler(event):
             await event.reply(help_text, parse_mode='markdown')
 
 
+@client.on(events.NewMessage(pattern=r'^cleanlist$'))
+async def clean_list(event):
+    sender_id = event.sender_id
+    if sender_id != BOT_OWNER_ID:
+        return  
+
+    open("user.txt", "w").close()
+    await event.reply("✅ لیست کاربران با موفقیت پاک شد.")
 
 
 @client.on(events.ChatAction)

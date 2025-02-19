@@ -1,4 +1,4 @@
-# Developed By MrAmini5
+# Developed By MrAmini
 
 from telethon import TelegramClient, events, functions, types
 import asyncio

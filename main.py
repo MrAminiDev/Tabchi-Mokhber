@@ -582,6 +582,9 @@ async def message_handler(event):
                 "🔹 `bot` - بررسی آنلاین بودن ربات\n"
                 "🔹 `info` - نمایش اطلاعات کلی ربات\n"
                 "🔹 `checkban` - بررسی مسدود شدن ربات\n"
+                "🔹 `ping` - بررسی پینگ و سرعت ربات\n"
+                "🔹 `setmode` - خاموش و روشن کردن ربات\n"
+                "🔹  example: setmode online"
                 "━━━━━━━━━━━━━━━━━━━━\n"
                 "📩 **ارسال پیام‌ها:**\n"
                 "📌 `sendpm` - ارسال پیام به تمام کاربران ذخیره‌شده\n"
@@ -598,6 +601,8 @@ async def message_handler(event):
                 "🟢 `InvalidUserOn` - حذف خودکار کاربران نامعتبر\n"
                 "🔴 `InvalidUserOff` - غیرفعال‌سازی حذف کاربران نامعتبر\n"
                 "🟢 `cleanlist` - حذف کاربران ذخیره شده\n"
+                "🔴 `clearpm` - حذف پیام های ارسال شده\n"
+                "🟢 `deluser` - حذف کاربر خاصی از لیست ارسال\n"
                 "━━━━━━━━━━━━━━━━━━━━\n"
                 "🔧 **تنظیمات و قابلیت‌ها:**\n"
                 "🔹 `bioon` - فعال‌سازی بیوگرافی تصادفی\n"
@@ -632,6 +637,56 @@ async def clean_list(event):
 
     open("user.txt", "w").close()
     await event.reply("✅ لیست کاربران با موفقیت پاک شد.")
+
+@client.on(events.NewMessage(pattern=r'^clearpm$'))
+async def clear_pm(event):
+    sender_id = event.sender_id
+    if sender_id != BOT_OWNER_ID:
+        return
+
+    try:
+        clear_sent_messages()  
+        await event.reply("✅ تمام پیام‌های ارسال‌شده با موفقیت پاک شدند.")
+    except Exception as e:
+        await event.reply(f"⚠️ خطا در پاک کردن پیام‌ها: {e}")
+
+@client.on(events.NewMessage(pattern=r'^deluser (\d+)$'))
+async def delete_user(event):
+    sender_id = event.sender_id
+    if sender_id != BOT_OWNER_ID:
+        return 
+
+    target_user_id = int(event.pattern_match.group(1))
+    try:
+        remove_user(target_user_id)  
+        await event.reply(f"✅ کاربر {target_user_id} از لیست حذف شد.")
+    except Exception as e:
+        await event.reply(f"⚠️ خطا در حذف کاربر: {e}")
+
+@client.on(events.NewMessage(pattern=r'^ping$'))
+async def ping(event):
+    start_time = time.time()
+    await event.reply("🏓 در حال بررسی پاسخ‌دهی...")
+    end_time = time.time()
+    
+    ping_time = round((end_time - start_time) * 1000) 
+    await event.reply(f"🏓 پینگ ربات: {ping_time}ms")
+    
+@client.on(events.NewMessage(pattern=r'^setmode (.+)$'))
+async def set_mode(event):
+    if event.sender_id != BOT_OWNER_ID:
+        return await event.reply("⛔ شما اجازه این کار را ندارید.")
+    
+    mode = event.pattern_match.group(1).lower()
+    if mode not in ["online", "offline"]:
+        return await event.reply("❌ حالت نامعتبر است. فقط می‌توانید از `online` یا `offline` استفاده کنید.")
+    
+    if mode == "offline":
+        await event.reply("🔴 ربات در حالت آفلاین قرار گرفت.")
+        await client.disconnect()
+    elif mode == "online":
+        await event.reply("🟢 ربات در حالت آنلاین قرار گرفت.")
+        await client.connect()
 
 
 @client.on(events.ChatAction)

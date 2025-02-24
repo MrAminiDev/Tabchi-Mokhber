@@ -9,6 +9,7 @@ import re
 import httpx
 import sys
 import subprocess
+import time
 
 # Configuration
 API_ID = 'AminiMokhberAPIID'  # Replace with your API ID
@@ -275,7 +276,6 @@ async def send_messages():
         return f"📊 گزارش ارسال پیام:\n✅ ارسال موفق: {sent_count}\n❌ ارسال ناموفق: {failed_count}\n🚫 حذف کاربران غیرفعال: {removed_users}"
     return "فایل‌های مورد نیاز وجود ندارند."
 
-
 @client.on(events.NewMessage(pattern="^forwardpm$", from_users=BOT_OWNER_ID))
 async def enable_forward_mode(event):
     global forward_mode, forward_message
@@ -290,7 +290,7 @@ async def receive_forward(event):
     if forward_mode:
         forward_message = event.message
         forward_mode = False  
-        user_list = load_users()  
+        user_list = list(load_users())
 
         settings = load_settings()
         daily_limit = settings.get("daily_limit")
@@ -306,21 +306,26 @@ async def receive_forward(event):
         await event.reply(f"✅ پیام دریافت شد! شروع ارسال به {min(len(user_list), daily_limit)} کاربر.")
 
         failed_users = []  
+        successful_users = []  
 
-        for user_id in list(user_list)[:daily_limit]: 
+        for user_id in user_list[:daily_limit]:  
             try:
                 await client.forward_messages(user_id, forward_message)
+                successful_users.append(user_id) 
                 await asyncio.sleep(random.randint(5, 60))  
             except Exception:
                 failed_users.append(user_id)
+
+        updated_users = [user for user in user_list if user not in successful_users]
+        with open(USERS_FILE, 'w', encoding='utf-8') as f:
+            f.write("\n".join(map(str, updated_users)))
 
         if failed_users:
             failed_report = "\n".join(str(uid) for uid in failed_users)
             await event.reply(f"⚠️ ارسال پیام به کاربران زیر ناموفق بود:\n{failed_report}")
         else:
-            await event.reply("✅ ارسال پیام به همه کاربران انجام شد.")
+            await event.reply("✅ ارسال پیام به همه کاربران انجام شد و لیست کاربران به‌روزرسانی شد.")
 
-            
 @client.on(events.NewMessage(pattern=r'^addacc (\+\d+)$'))
 async def add_account(event):
     sender_id = event.sender_id
@@ -539,6 +544,7 @@ async def message_handler(event):
 
             await event.reply("✅ پیام جدید با موفقیت ذخیره شد.")
             print("New message saved successfully.")
+
         elif message == 'sendpm':
             if os.path.exists(USERS_FILE) and os.path.exists(MESSAGE_FILE):
                 with open(USERS_FILE, 'r', encoding='utf-8') as f:
@@ -547,19 +553,24 @@ async def message_handler(event):
                 with open(MESSAGE_FILE, 'r', encoding='utf-8') as f:
                     message_content = f.read()
 
-                for user in users:
+                updated_users = users[:] 
+
+                for user_id in users:
                     try:
-                        await client.send_message(int(user), message_content)
-                        remove_user_from_file(user_id)
+                        await client.send_message(int(user_id), message_content)
+                        updated_users.remove(user_id)  
                         await asyncio.sleep(random.randint(1, 10))
                     except Exception as e:
-                        print(f"Error sending message to {user}: {e}")
+                        print(f"Error sending message to {user_id}: {e}")
 
-                await event.reply("پیام‌ها با موفقیت ارسال شدند.")
+                with open(USERS_FILE, 'w', encoding='utf-8') as f:
+                    f.write("\n".join(updated_users))  
+
+                await event.reply("✅ پیام‌ها با موفقیت ارسال شدند و لیست به‌روزرسانی شد.")
             else:
-                await event.reply("فایل‌های مورد نیاز وجود ندارند.")
+                await event.reply("⚠️ فایل‌های مورد نیاز وجود ندارند.")
+
         elif message == 'info':
-            # Gathering bot's status information
             total_users = 0
             if os.path.exists(USERS_FILE):
                 with open(USERS_FILE, 'r') as f:
@@ -578,7 +589,7 @@ async def message_handler(event):
             help_text = (
                 "📌 **راهنمای دستورات ربات**\n"
                 "━━━━━━━━━━━━━━━━━━━━\n"
-		"نسخه ربات: V 3.4.0\n"
+		"نسخه ربات: V 3.5.0\n"
                 "━━━━━━━━━━━━━━━━━━━━\n"
                 "🤖 **وضعیت ربات:**\n"
                 "🔹 `bot` - بررسی آنلاین بودن ربات\n"

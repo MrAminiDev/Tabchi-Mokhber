@@ -85,7 +85,7 @@ while true; do
     echo -e "${RED}        |___|___| \___/ |__|\_||__|__||_____||_____||__|\_| ${NC}"
     echo -e ""
     echo -e "${CYAN}+======================================================================+${NC}"
-    echo -e "|  Telegram Channel : ${MAGENTA}@AminiDev ${NC}|  Version : ${GREEN} 3.4.0${NC} "
+    echo -e "|  Telegram Channel : ${MAGENTA}@AminiDev ${NC}|  Version : ${GREEN} 3.5.0${NC} "
     echo -e "${CYAN}+======================================================================+${NC}"
     echo -e "${CYAN}== Main Menu ==${NC}"
     echo -e "1) Install Tabchi Mokhber"

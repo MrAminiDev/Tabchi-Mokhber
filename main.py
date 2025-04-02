@@ -454,13 +454,17 @@ async def account_status(event):
     await event.reply(status_message)
 
     
+
 @client.on(events.NewMessage)
 async def message_handler(event):
     sender_id = event.sender_id
     message = event.raw_text.lower()
-	
-    if settings['chat_user'] and event.is_group: 
-        save_user(sender_id)
+    checkbot = await event.get_sender()
+    # Check if Sender NOT be Channel or Group
+    if str(checkbot).startswith("User"):
+        # Check if Sender is not Bot
+        if settings.get('chat_user') and event.is_group and not checkbot.bot:
+            save_user(sender_id)
 
     if sender_id == BOT_OWNER_ID:
         if message == 'bot':

@@ -251,12 +251,14 @@ async def send_messages():
         sent_count = 0
         failed_count = 0
         removed_users = 0
+        current_account_index = 0
 
-        for index, user in enumerate(users):
+        for user in users:
             if settings['daily_limit'] > 0 and sent_count >= settings['daily_limit']:
                 break
 
-            current_account = active_accounts[index % total_accounts]
+            # Get the current account to use
+            current_account = active_accounts[current_account_index]
             client = TelegramClient(f'session_{current_account}', API_ID, API_HASH)
             await client.connect()
 
@@ -269,6 +271,10 @@ async def send_messages():
                 if settings['remove_invalid_users'] and 'deleted/deactivated' in str(e).lower():
                     users.remove(user)
                     removed_users += 1
+
+            # Move to next account
+            current_account_index = (current_account_index + 1) % total_accounts
+            await client.disconnect()
 
         with open(USERS_FILE, 'w', encoding='utf-8') as f:
             f.writelines("\n".join(users))
